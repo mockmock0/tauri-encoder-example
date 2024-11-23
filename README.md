@@ -1,5 +1,5 @@
 ## tauri-encoder-example
-Tauri 2.0와 FFmpeg 바이너리를 활용해 데스크톱 인코더 앱 만들기
+Tauri 2.0와 FFmpeg 바이너리를 활용해 데스크톱 인코더 앱 만들기<br>
 이 프로그램은 제작자 본인의 Rust 언어 학습 목적으로 제작되었습니다.
 <br>
 <br>
