@@ -1,6 +1,9 @@
 ## tauri-encoder-example
-[![watch in youtube](http://img.youtube.com/vi/ktFnJb3qybs/0.jpg)](https://youtu.be/ktFnJb3qybs)
+<img src="https://github.com/user-attachments/assets/e1d09cb4-fb53-44a0-a54d-a1973cb09990" width="500" height="500"/>
 <br>
+
+[Watch in YouTube](https://youtu.be/ktFnJb3qybs)
+<br><br>
 Tauri 2.0와 FFmpeg 바이너리를 활용해 데스크톱 인코더 앱 만들기<br>
 이 프로그램은 제작자 본인의 Rust 언어 학습 목적으로 제작되었습니다.
 <br>
