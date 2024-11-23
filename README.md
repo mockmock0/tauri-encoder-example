@@ -26,3 +26,7 @@ https://www.gyan.dev/ffmpeg/builds/ffmpeg-git-full.7z
 ./src-tauri/bin/ffmpeg-x86_64-pc-windows-msvc.exe
 ./src-tauri/bin/ffprobe-x86_64-pc-windows-msvc.exe
 ```
+
+## TO-DO
+- 파일 멀티플 옵션 활성화하기
+- yt-dlp 바이너리 통합
