@@ -9,7 +9,7 @@ export const useFileAdd = () => {
 
   const addFile = async () => {
     const selected = await open({
-      multiple: true,
+      multiple: false,
     });
 
     // 확장자 검사
@@ -24,11 +24,7 @@ export const useFileAdd = () => {
         file.endsWith(".wmv") ||
         file.endsWith(".m4v") ||
         file.endsWith(".mpg") ||
-        file.endsWith(".mpeg") ||
-        file.endsWith(".mp3") ||
-        file.endsWith(".wav") ||
-        file.endsWith(".m4a") ||
-        file.endsWith(".opus")
+        file.endsWith(".mpeg")
     );
 
     // 중복 검사

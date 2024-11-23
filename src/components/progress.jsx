@@ -27,34 +27,6 @@ const Progress = () => {
 
   const [listIndex, setListIndex] = useState(0);
   const [percent, setPercent] = useState(0);
-  const addFile = async () => {
-    const selected = await open({
-      multiple: false,
-    });
-
-    // 확장자 검사
-    const filtered = selected.filter(
-      (file) =>
-        file.endsWith(".mp4") ||
-        file.endsWith(".mkv") ||
-        file.endsWith(".mov") ||
-        file.endsWith(".avi") ||
-        file.endsWith(".webm") ||
-        file.endsWith(".flv") ||
-        file.endsWith(".wmv") ||
-        file.endsWith(".m4v") ||
-        file.endsWith(".mpg") ||
-        file.endsWith(".mpeg")
-    );
-
-    // 중복 검사
-    const unique = filtered.filter((file) => !path.includes(file));
-
-    setListIndex(path.length);
-    const paths = [...path, ...unique];
-    setPath(paths);
-    console.log(paths);
-  };
 
   const openOption = async () => {
     setEncOption({
