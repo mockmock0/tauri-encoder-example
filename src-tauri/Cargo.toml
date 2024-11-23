@@ -2,9 +2,9 @@
 members = ["."]
 
 [package]
-name = "tauri-app"
+name = "tauri-encoder-example"
 version = "0.1.0"
-description = "A Tauri App"
+description = "tauri-encoder-example"
 authors = ["you"]
 edition = "2021"
 
@@ -27,5 +27,4 @@ serde = { version = "1", features = ["derive"] }
 serde_json = "1"
 tauri-plugin-fs = "2"
 tauri-plugin-dialog = "2"
-windows = { version = "0.58", features = ["Win32_System_Threading", "Win32_Foundation"] }
 
