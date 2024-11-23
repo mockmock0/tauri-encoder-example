@@ -13,7 +13,7 @@ export const useFileAdd = () => {
     });
 
     // 확장자 검사
-    const filtered = selected.filter(
+    const filtered = [selected].filter(
       (file) =>
         file.endsWith(".mp4") ||
         file.endsWith(".mkv") ||
