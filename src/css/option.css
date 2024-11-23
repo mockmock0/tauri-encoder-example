@@ -1,0 +1,13 @@
+#option-content {
+  overflow-y: scroll;
+}
+#option-content .MuiTextField-root {
+  width: 100%;
+}
+
+#option-content::-webkit-scrollbar {
+  display: none;
+}
+ul {
+  overflow: hidden;
+}

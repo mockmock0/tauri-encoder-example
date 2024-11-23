@@ -1,0 +1,48 @@
+.titlebar {
+  height: "fit-content";
+  background: transparent;
+  user-select: none;
+  display: flex;
+  position: fixed;
+  z-index: 10000;
+  top: 0;
+  left: 0;
+  right: 0;
+}
+
+.titlebar-drag-region {
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.window-title {
+  color: white;
+  font-size: 12px;
+}
+
+.window-controls {
+  display: flex;
+  gap: 0;
+}
+.window-controls:hover {
+  color: #ffffff;
+}
+
+.window-control {
+  border: none;
+  background: none;
+  color: white;
+  font-size: 1rem;
+  cursor: pointer;
+}
+
+.window-control:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.close:hover {
+  background: #e81123;
+  color: #ffffff;
+}
