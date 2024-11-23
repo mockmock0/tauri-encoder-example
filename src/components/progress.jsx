@@ -29,7 +29,7 @@ const Progress = () => {
   const [percent, setPercent] = useState(0);
   const addFile = async () => {
     const selected = await open({
-      multiple: true,
+      multiple: false,
     });
 
     // 확장자 검사
@@ -185,7 +185,7 @@ const Progress = () => {
     return () => {
       unsubscribe.then((f) => f());
     };
-  }, [isEncoding, setIsEncoding, videoInfo, setVideoInfo, setProcessMsg, processMsg]);
+  }, [isEncoding, videoInfo, processMsg]);
 
   return (
     <>
