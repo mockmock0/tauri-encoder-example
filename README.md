@@ -33,5 +33,6 @@ https://www.gyan.dev/ffmpeg/builds/ffmpeg-git-full.7z
 ```
 
 ## TO-DO
-- 파일 멀티플 옵션 활성화하기
 - yt-dlp 바이너리 통합
+- option 간소화 작업
+- 리렌더링 최소화 등 최적화 작업
