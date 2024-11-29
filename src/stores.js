@@ -1,7 +1,7 @@
 import { create } from "zustand";
 
 const useStore = create((set) => ({
-  path: [],
+  path: [], // { path: "", status: false }
   setPath: (path) => set({ path }),
   videoInfo: [], // { path: "", frame: "", fps: "", isEncoded: false }
   addVideoInfo: (info) => set((state) => ({ videoInfo: [...state.videoInfo, info] })),

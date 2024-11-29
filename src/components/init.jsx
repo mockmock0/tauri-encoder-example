@@ -22,14 +22,14 @@ const InitPage = () => {
                 fontSize: "1.1rem",
                 borderRadius: "1rem",
                 width: "100%",
-                padding: path.length > 0 ? "0" : "1rem 1.5rem",
+                padding: path.some((p) => p.status) ? "0" : "1rem 1.5rem",
                 margin: "0 1rem",
-                opacity: path.length > 0 ? "0" : "1",
+                opacity: path.some((p) => p.status) ? "0" : "1",
                 overflow: "hidden",
                 transition: "all 0.3s ease-out",
                 transitionProperty: "opacity, max-width, min-width, padding, margin",
               }}
-              disabled={path.length > 0 ? true : false}
+              disabled={path.some((p) => p.status) ? true : false}
             >
               Select File
             </Button>

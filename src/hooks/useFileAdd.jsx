@@ -34,8 +34,10 @@ export const useFileAdd = () => {
     // 중복 검사
     const unique = filtered.filter((file) => !path.includes(file));
 
+    const newPath = unique.map((p) => ({ path: p, status: true }));
+
     setListIndex(path.length);
-    const paths = [...path, ...unique];
+    const paths = [...path, ...newPath];
     setPath(paths);
   };
 

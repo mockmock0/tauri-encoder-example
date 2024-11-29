@@ -17,7 +17,7 @@ const Titlebar = () => {
   return (
     <div className="titlebar">
       <div className="titlebar-drag-region">
-        {path.length >= 2 && !isEncoding ? (
+        {path.filter((p) => p.status).length >= 2 && !isEncoding ? (
           <div className="titlebar-title-container" style={{ display: "flex", width: "100%", height: "35px" }}>
             <div
               className="window-title titlebar-side-space"

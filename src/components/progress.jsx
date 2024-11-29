@@ -10,6 +10,8 @@ import { listen } from "@tauri-apps/api/event";
 import { invoke } from "@tauri-apps/api/core";
 import LoadPage from "./loadPage";
 import { useFileAdd } from "../hooks/useFileAdd";
+import useFileRemove from "../hooks/fileRemove";
+import VideocamIcon from "@mui/icons-material/Videocam";
 
 const Progress = () => {
   const {
@@ -33,6 +35,7 @@ const Progress = () => {
   const [percent, setPercent] = useState(0);
 
   const { addFile } = useFileAdd();
+  const { handleFileRemove } = useFileRemove();
 
   const openOption = async () => {
     setEncOption({
@@ -42,9 +45,7 @@ const Progress = () => {
   };
 
   const handleRemove = (target) => {
-    let copy = [...path];
-    copy = copy.filter((p) => p !== target);
-    setPath(copy);
+    handleFileRemove(target);
   };
 
   const longPressHandlers = useLongPress((e) => {
@@ -67,8 +68,8 @@ const Progress = () => {
     let copy = [];
     let pathcopy = [...path];
     for (let item of pathcopy) {
-      const info = await invoke("get_video_info", { path: item });
-      copy = [...copy, { path: item, frame: info.frame, fps: info.fps, isEncoded: false }];
+      const info = await invoke("get_video_info", { path: item.path });
+      copy = [...copy, { path: item.path, frame: info.frame, fps: info.fps, isEncoded: false }];
       await setJSON("videoInfo", copy);
     }
     const info = await getJSON("videoInfo");
@@ -195,7 +196,7 @@ const Progress = () => {
             return (
               <>
                 <motion.div
-                  key={p + "-" + index + "-motion"}
+                  key={p.path + "-" + index + "-motion"}
                   className="progress-element"
                   style={{
                     width: "100%",
@@ -203,16 +204,20 @@ const Progress = () => {
                   }}
                   sx={{}}
                   initial={{ opacity: 0, scale: 0.5 }}
-                  animate={{ opacity: 1, scale: 1 }}
+                  animate={
+                    p.status
+                      ? { opacity: 1, scale: 1, height: "auto", marginBottom: "1.125rem" }
+                      : { opacity: 0, scale: 0.5, height: "0", marginBottom: "0" }
+                  }
                   transition={{
                     duration: 0.5,
-                    delay: 0.02 + (index - listIndex - 1) * 0.08,
+                    delay: 0,
                     ease: [0, 0.71, 0.2, 1.01],
                   }}
                 >
                   <Button
-                    key={p + "-" + index + "-button"}
-                    data-path={p}
+                    key={p.path + "-" + index + "-button"}
+                    data-path={p.path}
                     disabled={isEncoding == true}
                     variant="contained"
                     style={{
@@ -263,7 +268,7 @@ const Progress = () => {
                     }}
                   >
                     <div
-                      data-path={p}
+                      data-path={p.path}
                       style={{
                         fontWeight: "400",
                         fontSize: "1.125rem",
@@ -273,11 +278,11 @@ const Progress = () => {
                         overflow: "visible",
                         justifyContent: "flex-start",
                         boxShadow:
-                          videoInfo.find((item) => !item.isEncoded)?.path === p && isFinite(percent)
+                          videoInfo.find((item) => !item.isEncoded)?.path === p.path && isFinite(percent)
                             ? "0 0 10px 5px rgba(251, 194, 235, 1), 0 0 14px 7px rgba(251, 194, 235, 1)"
                             : "none",
                         width:
-                          videoInfo.find((item) => !item.isEncoded)?.path === p && isFinite(percent)
+                          videoInfo.find((item) => !item.isEncoded)?.path === p.path && isFinite(percent)
                             ? `calc(calc(100% * ${percent}) / 100 )`
                             : !videoInfo?.[index]?.isEncoded
                             ? 0
@@ -293,7 +298,19 @@ const Progress = () => {
                         backdropFilter: "blur(100px)",
                       }}
                     ></div>
-                    <span style={{ width: "100%", padding: "0 0 0 .5rem", zIndex: 2 }}>{p.split("\\").pop()}</span>
+                    <span style={{ width: "100%", padding: "0 0 0 .5rem", zIndex: 2 }}>
+                      {p.path.split(".").pop().includes("mp4") ? (
+                        <VideocamIcon
+                          style={{
+                            fontSize: "1.5rem",
+                            verticalAlign: "middle",
+                            marginRight: "0.5rem",
+                            marginBottom: ".2rem",
+                          }}
+                        />
+                      ) : null}
+                      {p.path.split("\\").pop()}
+                    </span>
                   </Button>
                 </motion.div>
               </>
@@ -348,3 +365,5 @@ const getJSON = async (data) => {
 const setJSON = async (target, value) => {
   localStorage.setItem(target, JSON.stringify(value));
 };
+
+const VideoExtension = ["mp4", "mov", "avi", "mkv", "wmv", "flv", "webm"];
