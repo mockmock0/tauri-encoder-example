@@ -1,8 +1,8 @@
 ## tauri-encoder-example
-<img src="https://github.com/user-attachments/assets/e1d09cb4-fb53-44a0-a54d-a1973cb09990" width="500" height="500"/>
+<img src="https://github.com/user-attachments/assets/b1d59e31-24ad-4463-bb59-52be8c5bfd53" width="500">
 <br>
 
-[Watch in YouTube](https://youtu.be/ktFnJb3qybs)
+
 <br><br>
 Tauri 2.0와 FFmpeg 바이너리를 활용해 데스크톱 인코더 앱 만들기<br>
 이 프로그램은 제작자 본인의 Rust 언어 학습 목적으로 제작되었습니다.
@@ -33,5 +33,7 @@ https://www.gyan.dev/ffmpeg/builds/ffmpeg-git-full.7z
 ```
 
 ## TO-DO
-- 파일 멀티플 옵션 활성화하기
 - yt-dlp 바이너리 통합
+- Audio 인코딩 추가
+- option 간소화 작업
+- 리렌더링 최소화 등 최적화 작업
