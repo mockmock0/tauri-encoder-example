@@ -23,7 +23,7 @@ const InitPage = () => {
                 borderRadius: "1rem",
                 width: "100%",
                 padding: path.length > 0 ? "0" : "1rem 1.5rem",
-                margin: "0",
+                margin: "0 1rem",
                 opacity: path.length > 0 ? "0" : "1",
                 overflow: "hidden",
                 transition: "all 0.3s ease-out",

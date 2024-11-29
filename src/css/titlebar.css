@@ -28,7 +28,7 @@
 
 @media (min-width: 600px) {
   .titlebar-side-space {
-    width: calc(calc(100vw - 35rem) / 2);
+    width: calc(calc(100vw - 33rem) / 2);
   }
 }
 

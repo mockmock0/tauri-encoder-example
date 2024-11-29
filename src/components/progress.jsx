@@ -216,7 +216,8 @@ const Progress = () => {
                     disabled={isEncoding == true}
                     variant="contained"
                     style={{
-                      width: "100%",
+                      width: "calc(100% - 2rem)",
+                      margin: "0 1rem",
                       height: "4rem",
                       position: "relative",
                       padding: "0 3rem 0 1rem",
