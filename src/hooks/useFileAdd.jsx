@@ -7,13 +7,17 @@ export const useFileAdd = () => {
   const { path, setPath } = useStore();
   const [listIndex, setListIndex] = useState(0);
 
-  const addFile = async () => {
-    const selected = await open({
-      multiple: false,
-    });
-
+  const addFile = async (type, e) => {
+    let selected = [];
+    if (type !== "drag-drop") {
+      selected = await open({
+        multiple: true,
+      });
+    } else {
+      selected = e.payload.paths;
+    }
     // 확장자 검사
-    const filtered = [selected].filter(
+    const filtered = selected.filter(
       (file) =>
         file.endsWith(".mp4") ||
         file.endsWith(".mkv") ||
@@ -33,7 +37,6 @@ export const useFileAdd = () => {
     setListIndex(path.length);
     const paths = [...path, ...unique];
     setPath(paths);
-    console.log(paths);
   };
 
   return { addFile, listIndex };

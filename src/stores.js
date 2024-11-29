@@ -32,6 +32,8 @@ const useStore = create((set) => ({
   setEncOption: (option) => set({ encOption: option }),
   suffix: "_new",
   setSuffix: (suffix) => set({ suffix }),
+  init: false,
+  setInit: (init) => set({ init }),
 }));
 
 export default useStore;

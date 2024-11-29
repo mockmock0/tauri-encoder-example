@@ -66,12 +66,14 @@ const AlertDialog = () => {
               />
             </div>
           </DialogContent>
-          <DialogActions sx={{ justifyContent: "center", minWidth: "25rem", padding: 0 }}>
-            <Button onClick={removeFile} sx={{ width: "100%", padding: "10px 0" }}>
-              Yes
-            </Button>{" "}
-            <Button onClick={handleClose} sx={{ width: "100%", padding: "10px 0" }}>
+          <DialogActions
+            sx={{ justifyContent: "center", minWidth: "25rem", padding: 0, margin: 0, gap: 0, flexWrap: "nowrap" }}
+          >
+            <Button onClick={handleClose} sx={{ width: "100%", padding: "10px 0", margin: 0, flexGrow: 1 }}>
               No
+            </Button>
+            <Button onClick={removeFile} sx={{ width: "100%", padding: "10px 0", margin: 0, flexGrow: 1 }}>
+              Yes
             </Button>
           </DialogActions>
         </Dialog>
@@ -186,6 +188,7 @@ const PresetDialog = () => {
               <FormControl fullWidth>
                 <InputLabel id="preset-select-label">Video Preset</InputLabel>
                 <Select
+                  key="preset-select"
                   defaultValue={
                     encOption.video_encoder == "libx264"
                       ? "medium"
@@ -202,8 +205,8 @@ const PresetDialog = () => {
                   onBlur={(e) => handleChange(e, "video_preset")}
                   onChange={(e) => handleChange(e, "video_preset")}
                 >
-                  {preset(encOption.video_encoder).map((item) => (
-                    <MenuItem className="option-item" value={item}>
+                  {preset(encOption.video_encoder).map((item, index) => (
+                    <MenuItem className="option-item" key={item + "-" + index} value={item}>
                       {item}
                     </MenuItem>
                   ))}

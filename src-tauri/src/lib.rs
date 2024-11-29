@@ -6,12 +6,14 @@ use tauri_plugin_fs::FsExt;
 // State 구조체를 Arc<Mutex>를 사용하도록 변경
 struct State {
     ffmpeg_process: Mutex<Option<CommandChild>>,
+    is_encoding: Mutex<bool>,
 }
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     let state = State {
         ffmpeg_process: Mutex::new(None),
+        is_encoding: Mutex::new(false),
     };
 
     tauri::Builder
@@ -53,7 +55,9 @@ pub fn run() {
                 }
             }
         })
-        .invoke_handler(tauri::generate_handler![encode_video, abort_encoding, get_video_info])
+        .invoke_handler(
+            tauri::generate_handler![batch_video_encode, abort_encoding, get_video_info]
+        )
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }
@@ -122,6 +126,82 @@ async fn get_video_info(app: tauri::AppHandle, path: String) -> Result<VideoMeta
     Ok(result)
 }
 
+#[tauri::command]
+async fn batch_video_encode(
+    window: tauri::Window,
+    app: tauri::AppHandle,
+    state: tauri::State<'_, State>,
+    data: Vec<Video>
+) -> Result<String, String> {
+    *state.is_encoding.lock().unwrap() = true;
+
+    for (index, video) in data.iter().enumerate() {
+        if !*state.is_encoding.lock().unwrap() {
+            window
+                .emit("encoding-aborted", "인코딩이 중단되었습니다.")
+                .expect("failed to emit event");
+            return Ok("인코딩이 중단되었습니다.".to_string());
+        }
+
+        let mut medium: Vec<String> = vec![];
+        let video_crf_string = video.video_crf.to_string();
+
+        medium.extend_from_slice(
+            &[
+                "-y".to_string(),
+                "-i".to_string(),
+                video.input_path.clone(),
+                "-c:v".to_string(),
+                video.video_encoder.clone(),
+                "-preset".to_string(),
+                video.video_preset.clone(),
+                "-crf".to_string(),
+                video_crf_string,
+                "-c:a".to_string(),
+                video.audio_encoder.clone(),
+                "-b:a".to_string(),
+                video.audio_bitrate.clone(),
+            ]
+        );
+
+        if !video.video_params_tag.is_empty() {
+            medium.push(video.video_params_tag.clone());
+            medium.push(video.video_params.clone());
+        }
+
+        medium.push(video.output_path.clone());
+
+        let cmd = app.shell().command("ffmpeg").args(&medium);
+        println!("Processing video {}/{}: {:?}", index + 1, data.len(), cmd);
+
+        let (mut rx, child) = cmd.spawn().expect("Failed to spawn ffmpeg command");
+        *state.ffmpeg_process.lock().unwrap() = Some(child);
+
+        // 각 비디오의 인코딩 진행 상황 처리
+        while let Some(event) = rx.recv().await {
+            use tauri_plugin_shell::process::CommandEvent;
+            use tauri_plugin_shell::ShellExt;
+            if let CommandEvent::Stderr(line_bytes) = event {
+                let line = String::from_utf8_lossy(&line_bytes).replace('\r', "");
+                println!("{:?}", line);
+                use tauri::Emitter;
+                window
+                    .emit(
+                        "encoding-progress",
+                        Some(format!("Video {}/{}: {}", index + 1, data.len(), line))
+                    )
+                    .expect("failed to emit event");
+            }
+        }
+    }
+
+    use tauri::Emitter;
+    window.emit("encoding-finished", "All encodings finished").expect("failed to emit event");
+
+    *state.is_encoding.lock().unwrap() = false;
+    Ok("".to_string())
+}
+
 #[derive(Debug, Serialize, Deserialize)]
 struct Video {
     input_path: String,
@@ -136,64 +216,10 @@ struct Video {
 }
 
 #[tauri::command]
-async fn encode_video(
-    window: tauri::Window,
-    app: tauri::AppHandle,
-    state: tauri::State<'_, State>,
-    data: Video
-) -> Result<String, String> {
-    let video_crf_string = data.video_crf.to_string();
-
-    let mut medium = vec![
-        "-y",
-        "-i",
-        &data.input_path,
-        "-c:v",
-        &data.video_encoder,
-        "-preset",
-        &data.video_preset,
-        "-crf",
-        &video_crf_string,
-        "-c:a",
-        &data.audio_encoder,
-        "-b:a",
-        &data.audio_bitrate
-    ];
-    if !data.video_params_tag.is_empty() {
-        medium.push(&data.video_params_tag);
-        medium.push(&data.video_params);
-    }
-
-    medium.push(&data.output_path);
-
-    use tauri_plugin_shell::process::CommandEvent;
-    use tauri_plugin_shell::ShellExt;
-    let cmd = app.shell().command("ffmpeg").args(&medium);
-    let (mut rx, child) = cmd.spawn().expect("Failed to spawn ffmpeg command");
-
-    // 프로세스를 상태에 저장
-    *state.ffmpeg_process.lock().unwrap() = Some(child);
-
-    // 이벤트 처리는 별도로 수행
-    tauri::async_runtime::spawn(async move {
-        while let Some(event) = rx.recv().await {
-            if let CommandEvent::Stderr(line_bytes) = event {
-                let line = String::from_utf8_lossy(&line_bytes).replace('\r', "");
-                println!("{:?}", line);
-                use tauri::Emitter;
-                window
-                    .emit("encoding-progress", Some(format!("{}", line)))
-                    .expect("failed to emit event");
-            }
-        }
-    });
-    Ok("".to_string())
-}
-
-#[tauri::command]
 async fn abort_encoding(state: tauri::State<'_, State>) -> Result<String, String> {
+    *state.is_encoding.lock().unwrap() = false;
+
     if let Some(process) = state.ffmpeg_process.lock().unwrap().take() {
-        // SIGTERM 시그널 보내기
         match process.kill() {
             Ok(_) => {
                 println!("FFmpeg process terminated successfully");
