@@ -15,6 +15,7 @@ const LoadPage = (props) => {
           backgroundColor: "rgba(0, 0, 0, 0.5)",
           zIndex: "100000",
           backdropFilter: "blur(10px)",
+          transition: "all 0.3s ease-in-out",
         }}
       >
         {props.msg}
