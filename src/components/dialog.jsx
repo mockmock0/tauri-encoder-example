@@ -13,8 +13,9 @@ import FlashOnIcon from "@mui/icons-material/FlashOn"; // GPU fast
 import BoltIcon from "@mui/icons-material/Bolt"; // fast
 import CompressIcon from "@mui/icons-material/Compress"; // quality
 import ClearAllIcon from "@mui/icons-material/ClearAll"; // balance
-
+import { invoke } from "@tauri-apps/api/core";
 import ToggleButton from "@mui/material/ToggleButton";
+import { motion } from "framer-motion";
 import "../css/dialog.css";
 
 import "../css/option.css";
@@ -103,16 +104,40 @@ const PresetDialog = () => {
   const handleChange = (e, target) => {
     setOption(target);
     if (target === "GPU ON") {
-      setEncOption({
-        state: true,
-        video_encoder: "h264_nvenc",
-        video_preset: "p1",
-        video_crf: 27,
-        audio_encoder: "libfdk_aac",
-        audio_bitrate: 128,
-        video_params_tag: "",
-        video_params: "",
-      });
+      if (getJSON("gpu_info").includes("NVIDIA")) {
+        setEncOption({
+          state: true,
+          video_encoder: "h264_nvenc",
+          video_preset: "p1",
+          video_crf: 27,
+          audio_encoder: "libfdk_aac",
+          audio_bitrate: 128,
+          video_params_tag: "",
+          video_params: "",
+        });
+      } else if (getJSON("gpu_info").toLowerCase().includes("radeon")) {
+        setEncOption({
+          state: true,
+          video_encoder: "h264_amf",
+          video_preset: "speed",
+          video_crf: 27,
+          audio_encoder: "libfdk_aac",
+          audio_bitrate: 128,
+          video_params_tag: "",
+          video_params: "",
+        });
+      } else {
+        setEncOption({
+          state: true,
+          video_encoder: "h264_qsv",
+          video_preset: "veryfast",
+          video_crf: 27,
+          audio_encoder: "libfdk_aac",
+          audio_bitrate: 128,
+          video_params_tag: "",
+          video_params: "",
+        });
+      }
     } else if (target === "fast") {
       setEncOption({
         state: true,
@@ -148,17 +173,36 @@ const PresetDialog = () => {
       });
     }
   };
-
+  const IconSize = "2.25rem";
+  const IconStyle = { fontSize: IconSize, marginRight: "1rem" };
   const toggleTheme = (target) => {
     return {
       width: "100%",
       textAlign: "left",
       justifyContent: "flex-start",
       marginBottom: "1rem",
+      fontSize: "1.5rem",
+      fontWeight: 600,
       padding: "1.5rem 1rem 1.5rem 2.5rem",
       borderRadius: "20px",
       flexGrow: 1,
       transition: "all 0.3s ease",
+      "&:hover": {
+        background:
+          target === "GPU ON" && option === target
+            ? "linear-gradient(130deg, #330867, #a6c0fe, #e0c3fc)"
+            : target === "fast" && option === target
+            ? "linear-gradient(130deg, #a1c4fd, #c2e9fb, #e0c3fc)"
+            : target === "balance" && option === target
+            ? "linear-gradient(130deg, #a8edea, #fef9d7, #e0c3fc)"
+            : target === "quality" && option === target
+            ? "linear-gradient(130deg, #96fbc4, #d1fdff, #fef9d7)"
+            : "#828282",
+        backgroundSize: "300% 300%",
+        "-webkit-animation": target === option ? "gpu-animation 12s ease infinite" : null,
+        animation: target === option ? "gpu-animation 12s ease infinite" : null,
+        color: target === option ? "#121212" : "#FFFFFF",
+      },
       background:
         target === "GPU ON" && option === target
           ? "linear-gradient(130deg, #330867, #a6c0fe, #e0c3fc)"
@@ -173,8 +217,17 @@ const PresetDialog = () => {
       "-webkit-animation": target === option ? "gpu-animation 12s ease infinite" : null,
       animation: target === option ? "gpu-animation 12s ease infinite" : null,
       color: target === option ? "#121212" : "#FFFFFF",
+      border: "none",
     };
   };
+
+  React.useEffect(() => {
+    const getGPUInfo = async () => {
+      const res = await invoke("get_gpu_info");
+      localStorage.setItem("gpu_info", JSON.stringify(res[1].name));
+    };
+    getGPUInfo();
+  }, [encOption]);
 
   return (
     <ThemeProvider theme={theme}>
@@ -188,61 +241,63 @@ const PresetDialog = () => {
           PaperProps={{
             style: {
               borderRadius: ".75rem",
+              background: "transparent",
             },
           }}
         >
-          <DialogTitle>Preset</DialogTitle>
-          <DialogContent id="option-content" sx={{ overflowY: "hidden" }}>
-            <div style={{ display: "flex", flexDirection: "row", gap: "1rem" }}>
-              <ToggleButton
-                value="GPU ON"
-                aria-label="GPU ON"
-                sx={toggleTheme("GPU ON")}
-                className="toggle-GPU"
-                onClick={() => handleChange(null, "GPU ON")}
-              >
-                <FlashOnIcon />
-                <span>Fastest</span>
-              </ToggleButton>
-              <ToggleButton
-                value="fast"
-                aria-label="fast"
-                sx={toggleTheme("fast")}
-                className="toggle-speed"
-                onClick={() => handleChange(null, "fast")}
-              >
-                <BoltIcon />
-                <span>Speed</span>
-              </ToggleButton>
-            </div>
-            <div style={{ display: "flex", flexDirection: "row", gap: "1rem" }}>
-              <ToggleButton
-                value="balance"
-                aria-label="balance"
-                sx={toggleTheme("balance")}
-                className="toggle-balance"
-                onClick={() => handleChange(null, "balance")}
-              >
-                <ClearAllIcon />
-                <span>Balance</span>
-              </ToggleButton>
-              <ToggleButton
-                value="quality"
-                aria-label="quality"
-                sx={toggleTheme("quality")}
-                className="toggle-quality"
-                onClick={() => handleChange(null, "quality")}
-              >
-                <CompressIcon />
-                <span>Quality</span>
-              </ToggleButton>
-            </div>
+          <DialogContent id="option-content" sx={{ overflowY: "hidden", padding: "2rem", minWidth: "25rem" }}>
+            <ToggleButton
+              value="GPU ON"
+              aria-label="GPU ON"
+              sx={toggleTheme("GPU ON")}
+              className="toggle-GPU"
+              onClick={() => handleChange(null, "GPU ON")}
+              disableRipple
+            >
+              <FlashOnIcon sx={IconStyle} />
+              <span>Fastest</span>
+              {option === "GPU ON" && !getJSON("gpu_info").includes("s") ? (
+                <div style={{ color: "red", fontSize: ".8rem", marginLeft: "1rem" }}>
+                  Warning: may not work properly
+                </div>
+              ) : (
+                " "
+              )}
+            </ToggleButton>
+            <ToggleButton
+              value="fast"
+              aria-label="fast"
+              sx={toggleTheme("fast")}
+              className="toggle-speed"
+              onClick={() => handleChange(null, "fast")}
+              disableRipple
+            >
+              <BoltIcon sx={IconStyle} />
+              <span>Speed</span>
+            </ToggleButton>
+            <ToggleButton
+              value="balance"
+              aria-label="balance"
+              sx={toggleTheme("balance")}
+              className="toggle-balance"
+              onClick={() => handleChange(null, "balance")}
+              disableRipple
+            >
+              <ClearAllIcon sx={IconStyle} />
+              <span>Balance</span>
+            </ToggleButton>
+            <ToggleButton
+              value="quality"
+              aria-label="quality"
+              sx={toggleTheme("quality")}
+              className="toggle-quality"
+              onClick={() => handleChange(null, "quality")}
+              disableRipple
+            >
+              <CompressIcon sx={IconStyle} />
+              <span>Quality</span>
+            </ToggleButton>
           </DialogContent>
-          <DialogActions sx={{ justifyContent: "center", minWidth: "25rem", padding: 0 }}>
-            <Button onClick={handleClose} sx={{ width: "100%", padding: "10px 0" }}>
-              Close
-            </Button>
-          </DialogActions>
         </Dialog>
       </React.Fragment>
     </ThemeProvider>
