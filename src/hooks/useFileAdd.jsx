@@ -16,6 +16,7 @@ export const useFileAdd = () => {
     } else {
       selected = e.payload.paths;
     }
+    if (selected == null) return;
     // 확장자 검사
     const filtered = selected.filter((file) =>
       [

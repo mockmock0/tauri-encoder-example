@@ -87,7 +87,7 @@ struct GpuInfo {
 async fn get_video_info(app: tauri::AppHandle, path: String) -> Result<VideoMetadata, String> {
     // 파일 존재 여부 확인
     if !std::path::Path::new(&path).exists() {
-        return Err("파일이 존재하지 않습니다.".to_string());
+        return Err("no file".to_string());
     }
 
     let fps_output = app
@@ -109,7 +109,7 @@ async fn get_video_info(app: tauri::AppHandle, path: String) -> Result<VideoMeta
 
     // stdout이 비어있는지 확인 (유효하지 않은 비디오 파일인 경우)
     if fps_output.stdout.is_empty() {
-        return Err("유효하지 않은 비디오 파일입니다.".to_string());
+        return Err("invalid video file.".to_string());
     }
 
     let frame_output = app

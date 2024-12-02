@@ -74,9 +74,16 @@ const Progress = () => {
     let copy = [];
     for (let item of pathCopy) {
       if (await exists(item.path)) {
-        const info = await invoke("get_video_info", { path: item.path });
-        copy.push({ path: item.path, frame: info.frame, fps: info.fps, isEncoded: false });
-        await setJSON("videoInfo", [...copy]);
+        try {
+          const info = await invoke("get_video_info", { path: item.path });
+          copy.push({ path: item.path, frame: info.frame, fps: info.fps, isEncoded: false });
+          await setJSON("videoInfo", [...copy]);
+        } catch (e) {
+          if (e === "invalid video file.") {
+            item.error = "Invalid video file";
+            continue;
+          }
+        }
       } else {
         console.log("No file");
         copy.push({
@@ -86,22 +93,22 @@ const Progress = () => {
           isEncoded: true,
           error: "No file",
         });
-        await setJSON("videoInfo", [...copy]);
+        await setJSON("videoInfo", copy ? [...copy] : []);
         [...path].find((p) => p.path === item.path).error = "No file";
         setPath(pathCopy);
       }
     }
     const info = await getJSON("videoInfo");
-    setVideoInfo(info);
+    setVideoInfo(info ?? []);
     // encode 옵션 store에서 가져오기
     const { video_encoder, video_preset, video_crf, video_params_tag, video_params } = encOption;
 
     const data = [];
-    for (let item of info) {
+    for (let item of info ?? []) {
       if (item.error) continue;
       data.push({
         input_path: item.path,
-        output_path: item.path.slice(0, -item.path.split(".").pop().length) + suffix + ".mp4",
+        output_path: item.path.slice(0, -item.path.split(".").pop().length - 1) + suffix + ".mp4",
         video_encoder: video_encoder,
         video_preset: video_preset,
         video_crf: Number(video_crf),
@@ -330,11 +337,11 @@ const Progress = () => {
                         overflow: "visible",
                         justifyContent: "flex-start",
                         boxShadow:
-                          videoInfo.find((item) => !item.isEncoded)?.path === p.path && isFinite(percent)
+                          videoInfo?.find((item) => !item.isEncoded)?.path === p.path && isFinite(percent)
                             ? "0 0 10px 5px rgba(251, 194, 235, 1), 0 0 14px 7px rgba(251, 194, 235, 1)"
                             : "none",
                         width:
-                          videoInfo.find((item) => !item.isEncoded)?.path === p.path && isFinite(percent)
+                          videoInfo?.find((item) => !item.isEncoded)?.path === p.path && isFinite(percent)
                             ? `calc(calc(100% * ${percent}) / 100 )`
                             : !videoInfo?.[index]?.isEncoded
                             ? 0
