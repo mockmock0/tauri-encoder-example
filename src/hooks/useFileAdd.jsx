@@ -22,19 +22,28 @@ export const useFileAdd = () => {
         file.endsWith(".mp4") ||
         file.endsWith(".mkv") ||
         file.endsWith(".mov") ||
+        file.endsWith(".ts") ||
         file.endsWith(".avi") ||
         file.endsWith(".webm") ||
         file.endsWith(".flv") ||
         file.endsWith(".wmv") ||
         file.endsWith(".m4v") ||
         file.endsWith(".mpg") ||
-        file.endsWith(".mpeg")
+        file.endsWith(".mpeg") ||
+        file.endsWith(".m4a") ||
+        file.endsWith(".flac") ||
+        file.endsWith(".mp3") ||
+        file.endsWith(".wav") ||
+        file.endsWith(".aac") ||
+        file.endsWith(".opus")
     );
 
-    // 중복 검사
-    const unique = filtered.filter((file) => !path.includes(file));
 
-    const newPath = unique.map((p) => ({ path: p, status: true }));
+    // 중복 검사
+    const pathNames = path.map((item) => item.path);
+    const unique = filtered.filter((file) => !pathNames.includes(file));
+
+    const newPath = unique.map((p) => ({ path: p, status: true, isAudio: audioCheck(p) }));
 
     setListIndex(path.length);
     const paths = [...path, ...newPath];
@@ -42,4 +51,15 @@ export const useFileAdd = () => {
   };
 
   return { addFile, listIndex };
+};
+
+const audioCheck = (path) => {
+  return (
+    path.split(".").pop().includes("mp3") ||
+    path.split(".").pop().includes("wav") ||
+    path.split(".").pop().includes("aac") ||
+    path.split(".").pop().includes("m4a") ||
+    path.split(".").pop().includes("flac") ||
+    path.split(".").pop().includes("opus")
+  );
 };

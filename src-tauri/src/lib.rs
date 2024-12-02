@@ -56,7 +56,12 @@ pub fn run() {
             }
         })
         .invoke_handler(
-            tauri::generate_handler![batch_video_encode, abort_encoding, get_video_info]
+            tauri::generate_handler![
+                batch_video_encode,
+                abort_encoding,
+                get_video_info,
+                get_gpu_info
+            ]
         )
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
@@ -70,6 +75,12 @@ struct VideoMetadata {
     frame: String,
     fps: f32,
     path: String,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+struct GpuInfo {
+    name: String,
+    driver_version: Option<String>,
 }
 
 #[tauri::command]
@@ -124,6 +135,53 @@ async fn get_video_info(app: tauri::AppHandle, path: String) -> Result<VideoMeta
     };
 
     Ok(result)
+}
+
+#[tauri::command]
+async fn get_gpu_info(app: tauri::AppHandle) -> Result<Vec<GpuInfo>, String> {
+    let output = (
+        match std::env::consts::OS {
+            "windows" => {
+                app
+                    .shell()
+                    .command("wmic")
+                    .args([
+                        "path",
+                        "win32_VideoController",
+                        "get",
+                        "name,driverversion",
+                        "/format:csv",
+                    ])
+                    .output().await
+            }
+            _ => {
+                return Err("지원되지 않는 운영체제입니다.".to_string());
+            }
+        }
+    ).map_err(|e| e.to_string())?;
+
+    let output_str = String::from_utf8_lossy(&output.stdout);
+
+    match std::env::consts::OS {
+        "windows" => {
+            let mut gpus = Vec::new();
+            for line in output_str.lines().skip(1) {
+                let parts: Vec<&str> = line.split(',').collect();
+                if parts.len() >= 2 && !parts[1].trim().is_empty() {
+                    gpus.push(GpuInfo {
+                        name: parts[1].trim().to_string(),
+                        driver_version: if parts.len() > 2 {
+                            Some(parts[2].trim().to_string())
+                        } else {
+                            None
+                        },
+                    });
+                }
+            }
+            Ok(gpus)
+        }
+        _ => Err("지원되지 않는 운영체제입니다.".to_string()),
+    }
 }
 
 #[tauri::command]

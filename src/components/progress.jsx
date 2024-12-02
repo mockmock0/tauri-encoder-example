@@ -13,6 +13,7 @@ import { useFileAdd } from "../hooks/useFileAdd";
 import useFileRemove from "../hooks/fileRemove";
 import VideocamIcon from "@mui/icons-material/Videocam";
 import AudiotrackIcon from "@mui/icons-material/Audiotrack";
+import AddIcon from "@mui/icons-material/Add";
 
 const Progress = () => {
   const {
@@ -43,6 +44,7 @@ const Progress = () => {
       ...encOption,
       state: true,
     });
+    console.log(await invoke("get_gpu_info"));
   };
 
   const handleRemove = (target) => {
@@ -328,6 +330,43 @@ const Progress = () => {
               </>
             );
           })}
+        <motion.div
+          key="file-add"
+          className="progress-element"
+          style={{
+            display: "flex",
+            justifyContent: "center",
+          }}
+          initial={{ opacity: 0, scale: 0.5 }}
+          animate={path.some((item) => item.status) ? { opacity: 1, scale: 1 } : { opacity: 0, scale: 0 }}
+          transition={{
+            duration: 0.4,
+            delay: 0,
+            ease: [0, 0.71, 0.2, 1.01],
+          }}
+        >
+          <Button
+            id="file-add"
+            variant="contained"
+            onClick={addFile}
+            sx={{
+              width: "calc(100vw - 2rem)",
+
+              maxWidth: "33rem",
+              margin: "0 1rem",
+              height: "4rem",
+              borderRadius: "20px",
+              border: "1px solid #414141",
+              backgroundColor: "#121212",
+              "&:hover": {
+                backgroundColor: "#191919",
+                border: "1px solid #191919",
+              },
+            }}
+          >
+            <AddIcon sx={{ color: "#828282" }} />
+          </Button>
+        </motion.div>
         <motion.div
           key="start-button"
           className="progress-element"
