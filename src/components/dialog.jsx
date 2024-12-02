@@ -9,13 +9,6 @@ import CssBaseline from "@mui/material/CssBaseline";
 import Checkbox from "@mui/material/Checkbox";
 import FormControlLabel from "@mui/material/FormControlLabel";
 import useFileRemove from "../hooks/fileRemove";
-import Select from "@mui/material/Select";
-import MenuItem from "@mui/material/MenuItem";
-import InputLabel from "@mui/material/InputLabel";
-import Box from "@mui/material/Box";
-import FormControl from "@mui/material/FormControl";
-import TextField from "@mui/material/TextField";
-import Slider from "@mui/material/Slider";
 import FlashOnIcon from "@mui/icons-material/FlashOn"; // GPU fast
 import BoltIcon from "@mui/icons-material/Bolt"; // fast
 import CompressIcon from "@mui/icons-material/Compress"; // quality
@@ -34,7 +27,7 @@ import useStore from "../stores";
 
 const AlertDialog = () => {
   const { longpress, setLongpress } = useStore();
-  const { handleRemove } = useFileRemove();
+  const { handleFileRemove } = useFileRemove();
   const handleClose = () => {
     setLongpress({
       state: false,
@@ -43,7 +36,7 @@ const AlertDialog = () => {
   };
   const removeFile = () => {
     handleClose();
-    handleRemove(longpress.target);
+    handleFileRemove({ path: longpress.target });
   };
   const handleDontShowAgain = (e) => {
     localStorage.setItem("dont-show-again", e.target.checked);

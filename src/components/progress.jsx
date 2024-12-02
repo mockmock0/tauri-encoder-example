@@ -264,11 +264,12 @@ const Progress = () => {
                     onClick={() => {
                       if (localStorage.getItem("dont-show-again") !== "true") {
                         setLongpress({
-                          target: p,
+                          target: p.path,
                           state: true,
                         });
+                        console.log(p.path);
                       } else {
-                        handleRemove(p);
+                        handleFileRemove({ path: p.path });
                       }
                     }}
                   >
