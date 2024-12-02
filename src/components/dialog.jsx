@@ -15,6 +15,15 @@ import InputLabel from "@mui/material/InputLabel";
 import Box from "@mui/material/Box";
 import FormControl from "@mui/material/FormControl";
 import TextField from "@mui/material/TextField";
+import Slider from "@mui/material/Slider";
+import FlashOnIcon from "@mui/icons-material/FlashOn"; // GPU fast
+import BoltIcon from "@mui/icons-material/Bolt"; // fast
+import CompressIcon from "@mui/icons-material/Compress"; // quality
+import ClearAllIcon from "@mui/icons-material/ClearAll"; // balance
+
+import ToggleButton from "@mui/material/ToggleButton";
+import ToggleButtonGroup from "@mui/material/ToggleButtonGroup";
+
 import "../css/option.css";
 const theme = createTheme({
   palette: {
@@ -66,14 +75,12 @@ const AlertDialog = () => {
               />
             </div>
           </DialogContent>
-          <DialogActions
-            sx={{ justifyContent: "center", minWidth: "25rem", padding: 0, margin: 0, gap: 0, flexWrap: "nowrap" }}
-          >
-            <Button onClick={handleClose} sx={{ width: "100%", padding: "10px 0", margin: 0, flexGrow: 1 }}>
-              No
-            </Button>
-            <Button onClick={removeFile} sx={{ width: "100%", padding: "10px 0", margin: 0, flexGrow: 1 }}>
+          <DialogActions sx={{ justifyContent: "center", minWidth: "25rem", padding: 0 }}>
+            <Button onClick={removeFile} sx={{ width: "100%", padding: "10px 0" }}>
               Yes
+            </Button>{" "}
+            <Button onClick={handleClose} sx={{ width: "100%", padding: "10px 0" }}>
+              No
             </Button>
           </DialogActions>
         </Dialog>
@@ -84,6 +91,8 @@ const AlertDialog = () => {
 
 const PresetDialog = () => {
   const { encOption, setEncOption, suffix, setSuffix } = useStore();
+
+  const [option, setOption] = React.useState("fast");
   React.useEffect(() => {
     if (getJSON("encode_option")) {
       setEncOption({ ...getJSON("encode_option"), state: false });
@@ -99,51 +108,54 @@ const PresetDialog = () => {
     });
   };
   const handleChange = (e, target) => {
-    if ([target] == "video_params") {
-      switch (encOption.video_encoder) {
-        case "libx264":
-          setEncOption({
-            ...encOption,
-            video_params_tag: "-x264-params",
-            video_params: e.target.value,
-          });
-          break;
-        case "libx265":
-          setEncOption({
-            ...encOption,
-            video_params_tag: "-x265-params",
-            video_params: e.target.value,
-          });
-          break;
-        case "libsvtav1":
-          setEncOption({
-            ...encOption,
-            video_params_tag: "-svtav1-params",
-            video_params: e.target.value,
-          });
-          break;
-      }
-    } else if ([target] == "video_encoder") {
+    setOption(target);
+    if (target === "GPU ON") {
       setEncOption({
-        ...encOption,
-        video_encoder: e.target.value,
-        video_preset: e.target.value == "libx264" ? "medium" : e.target.value == "libx265" ? "veryfast" : "9",
+        state: true,
+        video_encoder: "hevc_nvenc",
+        video_preset: "p7",
+        video_crf: 27,
+        audio_encoder: "libaac",
+        audio_bitrate: 128,
+        video_params_tag: "",
+        video_params: "",
       });
-    } else if ([target] == "video_crf") {
-      let copy = e.target.value;
-      if (copy < 0 || copy > 51) copy = 23;
+    } else if (target === "fast") {
       setEncOption({
-        ...encOption,
-        [target]: copy,
+        state: true,
+        video_encoder: "libx264",
+        video_preset: "ultrafast",
+        video_crf: 21,
+        audio_encoder: "libaac",
+        audio_bitrate: 256,
+        video_params_tag: "",
+        video_params: "",
       });
-    } else {
+    } else if (target === "balance") {
       setEncOption({
-        ...encOption,
-        [target]: e.target.value,
+        state: true,
+        video_encoder: "libx265",
+        video_preset: "fast",
+        video_crf: 27,
+        audio_encoder: "libaac",
+        audio_bitrate: 196,
+        video_params_tag: "",
+        video_params: "",
+      });
+    } else if (target === "quality") {
+      setEncOption({
+        state: true,
+        video_encoder: "libsvtav1",
+        video_preset: "4",
+        video_crf: 45,
+        audio_encoder: "libopus",
+        audio_bitrate: 96,
+        video_params_tag: "-svtav1-params",
+        video_params: "film-grain=0,enable-variance-boost=1,variance-boost-strength=1",
       });
     }
-    setJSON("encode_option", encOption);
   };
+
   return (
     <ThemeProvider theme={theme}>
       <CssBaseline />
@@ -159,89 +171,56 @@ const PresetDialog = () => {
             },
           }}
         >
-          <DialogTitle>Option</DialogTitle>
+          <DialogTitle>Preset</DialogTitle>
           <DialogContent id="option-content" sx={{ overflowY: "hidden" }}>
-            <Box sx={{ minWidth: 120, p: 1 }}>
-              <FormControl fullWidth>
-                <InputLabel id="encoder-select-label">Video Encoder</InputLabel>
-                <Select
-                  labelId="encoder-select-label"
-                  id="encoder-select"
-                  value={encOption.video_encoder}
-                  label="Video Encoder"
-                  onBlur={(e) => handleChange(e, "video_encoder")}
-                  onChange={(e) => handleChange(e, "video_encoder")}
-                >
-                  <MenuItem className="option-item" value={"libx264"}>
-                    x264
-                  </MenuItem>
-                  <MenuItem className="option-item" value={"libx265"}>
-                    x265
-                  </MenuItem>
-                  <MenuItem className="option-item" value={"libsvtav1"}>
-                    SVT-AV1
-                  </MenuItem>
-                </Select>
-              </FormControl>
-            </Box>
-            <Box sx={{ minWidth: 120, p: 1 }}>
-              <FormControl fullWidth>
-                <InputLabel id="preset-select-label">Video Preset</InputLabel>
-                <Select
-                  key="preset-select"
-                  defaultValue={
-                    encOption.video_encoder == "libx264"
-                      ? "medium"
-                      : encOption.video_encoder == "libx265"
-                      ? "veryfast"
-                      : encOption.video_encoder == "libsvtav1"
-                      ? "9"
-                      : null
-                  }
-                  labelId="preset-select-label"
-                  id="preset-select"
-                  value={encOption.video_preset}
-                  label="Video Preset"
-                  onBlur={(e) => handleChange(e, "video_preset")}
-                  onChange={(e) => handleChange(e, "video_preset")}
-                >
-                  {preset(encOption.video_encoder).map((item, index) => (
-                    <MenuItem className="option-item" key={item + "-" + index} value={item}>
-                      {item}
-                    </MenuItem>
-                  ))}
-                </Select>
-              </FormControl>
-            </Box>
-            <Box sx={{ minWidth: 120, p: 1, width: "100%" }}>
-              <TextField
-                label="CRF"
-                value={encOption.video_crf}
-                max={51}
-                min={0}
-                sx={{ width: "100%" }}
-                onBlur={(e) => handleChange(e, "video_crf")}
-                onChange={(e) => handleChange(e, "video_crf")}
-              />
-            </Box>
-            <Box sx={{ minWidth: 120, p: 1, width: "100%" }}>
-              <TextField
-                label="Video Params"
-                value={encOption.video_params}
-                sx={{ width: "100%" }}
-                onBlur={(e) => handleChange(e, "video_params")}
-                onChange={(e) => handleChange(e, "video_params")}
-              />
-            </Box>
-            <Box sx={{ minWidth: 120, p: 1, width: "100%" }}>
-              <TextField
-                label="Suffix"
-                value={suffix}
-                sx={{ width: "100%" }}
-                onBlur={(e) => setSuffix(e.target.value)}
-                onChange={(e) => setSuffix(e.target.value)}
-              />
-            </Box>
+            <ToggleButtonGroup
+              orientation="vertical"
+              value={option}
+              exclusive
+              onChange={handleChange}
+              sx={{ width: "100%", textAlign: "left" }}
+            >
+              <ToggleButton
+                value="GPU ON"
+                aria-label="GPU ON"
+                sx={{ width: "100%", textAlign: "left", justifyContent: "flex-start" }}
+              >
+                <FlashOnIcon />
+                &nbsp;
+                <span>Fastest</span>
+              </ToggleButton>
+              <ToggleButton
+                value="fast"
+                aria-label="fast"
+                sx={{
+                  width: "100%",
+                  textAlign: "left",
+                  justifyContent: "flex-start", // 추가
+                }}
+              >
+                <BoltIcon />
+                &nbsp;
+                <span>Speed</span>
+              </ToggleButton>
+              <ToggleButton
+                value="balance"
+                aria-label="balance"
+                sx={{ width: "100%", textAlign: "left", justifyContent: "flex-start" }}
+              >
+                <ClearAllIcon />
+                &nbsp;
+                <span>Balance</span>
+              </ToggleButton>
+              <ToggleButton
+                value="quality"
+                aria-label="quality"
+                sx={{ width: "100%", textAlign: "left", justifyContent: "flex-start" }}
+              >
+                <CompressIcon />
+                &nbsp;
+                <span>Quality & Compress</span>
+              </ToggleButton>
+            </ToggleButtonGroup>
           </DialogContent>
           <DialogActions sx={{ justifyContent: "center", minWidth: "25rem", padding: 0 }}>
             <Button onClick={handleClose} sx={{ width: "100%", padding: "10px 0" }}>
@@ -265,6 +244,25 @@ const preset = (encoder) => {
   }
   if (encoder === "libsvtav1") {
     return ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13"];
+  }
+};
+
+const quality = (encoder) => {
+  if (encoder === "libx264") {
+    return [
+      {
+        value: 17,
+        label: "Best Mode",
+      },
+      {
+        value: 23,
+        label: "Balanced Mode",
+      },
+      {
+        value: 51,
+        label: "Fastest Mode",
+      },
+    ];
   }
 };
 
