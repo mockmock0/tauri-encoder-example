@@ -8,6 +8,7 @@ import { red, blue, grey } from "@mui/material/colors";
 import { useLongPress } from "../hooks/useLongPress";
 import { listen } from "@tauri-apps/api/event";
 import { invoke } from "@tauri-apps/api/core";
+import { exists } from "@tauri-apps/plugin-fs";
 import LoadPage from "./loadPage";
 import { useFileAdd } from "../hooks/useFileAdd";
 import useFileRemove from "../hooks/fileRemove";
@@ -72,9 +73,23 @@ const Progress = () => {
     setPath(pathCopy.filter((item) => item.status));
     let copy = [];
     for (let item of pathCopy) {
-      const info = await invoke("get_video_info", { path: item.path });
-      copy.push({ path: item.path, frame: info.frame, fps: info.fps, isEncoded: false });
-      await setJSON("videoInfo", [...copy]);
+      if (await exists(item.path)) {
+        const info = await invoke("get_video_info", { path: item.path });
+        copy.push({ path: item.path, frame: info.frame, fps: info.fps, isEncoded: false });
+        await setJSON("videoInfo", [...copy]);
+      } else {
+        console.log("No file");
+        copy.push({
+          path: item.path,
+          frame: "",
+          fps: "",
+          isEncoded: true,
+          error: "No file",
+        });
+        await setJSON("videoInfo", [...copy]);
+        [...path].find((p) => p.path === item.path).error = "No file";
+        setPath(pathCopy);
+      }
     }
     const info = await getJSON("videoInfo");
     setVideoInfo(info);
@@ -83,6 +98,7 @@ const Progress = () => {
 
     const data = [];
     for (let item of info) {
+      if (item.error) continue;
       data.push({
         input_path: item.path,
         output_path: item.path.slice(0, -item.path.split(".").pop().length) + suffix + ".mp4",
@@ -96,7 +112,12 @@ const Progress = () => {
       });
     }
     console.log(data);
-    await invoke("batch_video_encode", { data: data });
+    if (data.length > 0) {
+      await invoke("batch_video_encode", { data: data });
+    } else {
+      setIsEncoding(false);
+      setInit(false);
+    }
   };
 
   const handleStop = async () => {
@@ -162,6 +183,32 @@ const Progress = () => {
           console.log("end of list");
           if (isEncoding) setIsEncoding(false);
         }
+      }
+
+      // 예외 처리
+      if (cmd.includes("Error opening input files: No such file or directory")) {
+        current.isEncoded = true;
+        current.error = "No such file or directory";
+        setVideoInfo(videoInfo);
+        setJSON("videoInfo", videoInfo);
+      }
+      if (cmd.includes("incorrect codec parameters")) {
+        current.isEncoded = true;
+        current.error = "Incorrect codec parameters";
+        setVideoInfo(videoInfo);
+        setJSON("videoInfo", videoInfo);
+      }
+      if (cmd.includes("Invalid data found when processing input")) {
+        current.isEncoded = true;
+        current.error = "File is corrupted";
+        setVideoInfo(videoInfo);
+        setJSON("videoInfo", videoInfo);
+      }
+      if (cmd.includes("Conversion failed!")) {
+        current.isEncoded = true;
+        current.error = "Unexpected error";
+        setVideoInfo(videoInfo);
+        setJSON("videoInfo", videoInfo);
       }
     });
 
@@ -267,7 +314,6 @@ const Progress = () => {
                           target: p.path,
                           state: true,
                         });
-                        console.log(p.path);
                       } else {
                         handleFileRemove({ path: p.path });
                       }
@@ -324,7 +370,15 @@ const Progress = () => {
                           }}
                         />
                       )}
-                      {p.path.split("\\").pop()}
+                      {p.error ? (
+                        <span style={{ color: "red", fontSize: "1rem" }}>{p.error}</span>
+                      ) : videoInfo?.find((item) => item.path === p.path)?.error ? (
+                        <span style={{ color: "red", fontSize: "1rem" }}>
+                          {videoInfo?.find((item) => item.path === p.path)?.error}
+                        </span>
+                      ) : (
+                        p.path.split("\\").pop()
+                      )}
                     </span>
                   </Button>
                 </motion.div>

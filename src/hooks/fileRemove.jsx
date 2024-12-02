@@ -1,7 +1,7 @@
 import useStore from "../stores";
 
 const useFileRemove = () => {
-  const { path, setPath } = useStore();
+  const { path, setPath, setVideoInfo } = useStore();
 
   const handleFileRemove = (target) => {
     let copy = [...path];
@@ -11,7 +11,10 @@ const useFileRemove = () => {
     } else {
       setPath([]);
     }
-    console.log(path);
+    if (!path.some((item) => item.status)) {
+      setVideoInfo([]);
+      localStorage.removeItem("videoInfo");
+    }
   };
   return { handleFileRemove };
 };

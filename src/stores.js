@@ -1,9 +1,9 @@
 import { create } from "zustand";
 
 const useStore = create((set) => ({
-  path: [], // { path: "", status: false }
+  path: [], // { path: "", status: false, error: "no file" }
   setPath: (path) => set({ path }),
-  videoInfo: [], // { path: "", frame: "", fps: "", isEncoded: false }
+  videoInfo: [], // { path: "", frame: "", fps: "", isEncoded: false, error: false }
   addVideoInfo: (info) => set((state) => ({ videoInfo: [...state.videoInfo, info] })),
   setVideoInfo: (info) => set({ videoInfo: info }),
   processMsg: {
