@@ -79,12 +79,17 @@ struct VideoMetadata {
 
 #[derive(Debug, Serialize, Deserialize)]
 struct GpuInfo {
-    name: String,
-    driver_version: Option<String>,
+    name: Option<String>,
+    driver_version: String,
 }
 
 #[tauri::command]
 async fn get_video_info(app: tauri::AppHandle, path: String) -> Result<VideoMetadata, String> {
+    // 파일 존재 여부 확인
+    if !std::path::Path::new(&path).exists() {
+        return Err("파일이 존재하지 않습니다.".to_string());
+    }
+
     let fps_output = app
         .shell()
         .command("ffprobe")
@@ -101,6 +106,11 @@ async fn get_video_info(app: tauri::AppHandle, path: String) -> Result<VideoMeta
         ])
         .output().await
         .map_err(|e| e.to_string())?;
+
+    // stdout이 비어있는지 확인 (유효하지 않은 비디오 파일인 경우)
+    if fps_output.stdout.is_empty() {
+        return Err("유효하지 않은 비디오 파일입니다.".to_string());
+    }
 
     let frame_output = app
         .shell()
@@ -169,8 +179,8 @@ async fn get_gpu_info(app: tauri::AppHandle) -> Result<Vec<GpuInfo>, String> {
                 let parts: Vec<&str> = line.split(',').collect();
                 if parts.len() >= 2 && !parts[1].trim().is_empty() {
                     gpus.push(GpuInfo {
-                        name: parts[1].trim().to_string(),
-                        driver_version: if parts.len() > 2 {
+                        driver_version: parts[1].trim().to_string(),
+                        name: if parts.len() > 2 {
                             Some(parts[2].trim().to_string())
                         } else {
                             None
