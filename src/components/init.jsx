@@ -1,13 +1,11 @@
 import { Button } from "@mui/material";
-import SendIcon from "@mui/icons-material/Send";
-import { open } from "@tauri-apps/plugin-dialog";
 import useStore from "../stores";
 import { Progress } from "./progress";
 import { useFileAdd } from "../hooks/useFileAdd";
 
 const InitPage = () => {
-  const { path, isEncoding, setIsEncoding, rawMsg } = useStore();
-  const { addFile, listIndex } = useFileAdd();
+  const { path } = useStore();
+  const { addFile } = useFileAdd();
   return (
     <>
       <Progress />
