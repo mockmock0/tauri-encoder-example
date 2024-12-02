@@ -17,30 +17,36 @@ export const useFileAdd = () => {
       selected = e.payload.paths;
     }
     // 확장자 검사
-    const filtered = selected.filter(
-      (file) =>
-        file.endsWith(".mp4") ||
-        file.endsWith(".mkv") ||
-        file.endsWith(".mov") ||
-        file.endsWith(".ts") ||
-        file.endsWith(".avi") ||
-        file.endsWith(".webm") ||
-        file.endsWith(".flv") ||
-        file.endsWith(".wmv") ||
-        file.endsWith(".m4v") ||
-        file.endsWith(".mpg") ||
-        file.endsWith(".mpeg") ||
-        file.endsWith(".m4a") ||
-        file.endsWith(".flac") ||
-        file.endsWith(".mp3") ||
-        file.endsWith(".wav") ||
-        file.endsWith(".aac") ||
-        file.endsWith(".opus")
+    const filtered = selected.filter((file) =>
+      [
+        "mp4",
+        "mkv",
+        "mov",
+        "ts",
+        "avi",
+        "webm",
+        "flv",
+        "wmv",
+        "m4v",
+        "mpg",
+        "mpeg",
+        "m4a",
+        "flac",
+        "mp3",
+        "wav",
+        "aac",
+        "opus",
+      ].includes(file.split(".").pop())
     );
 
-
-    // 중복 검사
+    // status가 false인 경우 검사
     const pathNames = path.map((item) => item.path);
+    const exist = filtered.filter((file) => pathNames.includes(file))?.[0];
+    if (exist && !path.find((p) => p.path === exist).status) {
+      path.find((p) => p.path === exist).status = true;
+    }
+    console.log(filtered);
+    console.log(path);
     const unique = filtered.filter((file) => !pathNames.includes(file));
 
     const newPath = unique.map((p) => ({ path: p, status: true, isAudio: audioCheck(p) }));
@@ -54,12 +60,5 @@ export const useFileAdd = () => {
 };
 
 const audioCheck = (path) => {
-  return (
-    path.split(".").pop().includes("mp3") ||
-    path.split(".").pop().includes("wav") ||
-    path.split(".").pop().includes("aac") ||
-    path.split(".").pop().includes("m4a") ||
-    path.split(".").pop().includes("flac") ||
-    path.split(".").pop().includes("opus")
-  );
+  return ["mp3", "wav", "aac", "m4a", "flac", "opus"].includes(path.split(".").pop());
 };
