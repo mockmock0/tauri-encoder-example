@@ -15,7 +15,7 @@ import CompressIcon from "@mui/icons-material/Compress"; // quality
 import ClearAllIcon from "@mui/icons-material/ClearAll"; // balance
 
 import ToggleButton from "@mui/material/ToggleButton";
-import ToggleButtonGroup from "@mui/material/ToggleButtonGroup";
+import "../css/dialog.css";
 
 import "../css/option.css";
 const theme = createTheme({
@@ -105,10 +105,10 @@ const PresetDialog = () => {
     if (target === "GPU ON") {
       setEncOption({
         state: true,
-        video_encoder: "hevc_nvenc",
-        video_preset: "p7",
+        video_encoder: "h264_nvenc",
+        video_preset: "p1",
         video_crf: 27,
-        audio_encoder: "libaac",
+        audio_encoder: "libfdk_aac",
         audio_bitrate: 128,
         video_params_tag: "",
         video_params: "",
@@ -119,7 +119,7 @@ const PresetDialog = () => {
         video_encoder: "libx264",
         video_preset: "ultrafast",
         video_crf: 21,
-        audio_encoder: "libaac",
+        audio_encoder: "libfdk_aac",
         audio_bitrate: 256,
         video_params_tag: "",
         video_params: "",
@@ -128,9 +128,9 @@ const PresetDialog = () => {
       setEncOption({
         state: true,
         video_encoder: "libx265",
-        video_preset: "fast",
+        video_preset: "medium",
         video_crf: 27,
-        audio_encoder: "libaac",
+        audio_encoder: "libfdk_aac",
         audio_bitrate: 196,
         video_params_tag: "",
         video_params: "",
@@ -149,6 +149,33 @@ const PresetDialog = () => {
     }
   };
 
+  const toggleTheme = (target) => {
+    return {
+      width: "100%",
+      textAlign: "left",
+      justifyContent: "flex-start",
+      marginBottom: "1rem",
+      padding: "1.5rem 1rem 1.5rem 2.5rem",
+      borderRadius: "20px",
+      flexGrow: 1,
+      transition: "all 0.3s ease",
+      background:
+        target === "GPU ON" && option === target
+          ? "linear-gradient(130deg, #330867, #a6c0fe, #e0c3fc)"
+          : target === "fast" && option === target
+          ? "linear-gradient(130deg, #a1c4fd, #c2e9fb, #e0c3fc)"
+          : target === "balance" && option === target
+          ? "linear-gradient(130deg, #a8edea, #fef9d7, #e0c3fc)"
+          : target === "quality" && option === target
+          ? "linear-gradient(130deg, #96fbc4, #d1fdff, #fef9d7)"
+          : "#828282",
+      backgroundSize: "300% 300%",
+      "-webkit-animation": target === option ? "gpu-animation 12s ease infinite" : null,
+      animation: target === option ? "gpu-animation 12s ease infinite" : null,
+      color: target === option ? "#121212" : "#FFFFFF",
+    };
+  };
+
   return (
     <ThemeProvider theme={theme}>
       <CssBaseline />
@@ -160,60 +187,56 @@ const PresetDialog = () => {
           aria-describedby="alert-dialog-description"
           PaperProps={{
             style: {
-              borderRadius: ".75rem", // 원하는 값으로 조정 가능
+              borderRadius: ".75rem",
             },
           }}
         >
           <DialogTitle>Preset</DialogTitle>
           <DialogContent id="option-content" sx={{ overflowY: "hidden" }}>
-            <ToggleButtonGroup
-              orientation="vertical"
-              value={option}
-              exclusive
-              onChange={handleChange}
-              sx={{ width: "100%", textAlign: "left" }}
-            >
+            <div style={{ display: "flex", flexDirection: "row", gap: "1rem" }}>
               <ToggleButton
                 value="GPU ON"
                 aria-label="GPU ON"
-                sx={{ width: "100%", textAlign: "left", justifyContent: "flex-start" }}
+                sx={toggleTheme("GPU ON")}
+                className="toggle-GPU"
+                onClick={() => handleChange(null, "GPU ON")}
               >
                 <FlashOnIcon />
-                &nbsp;
                 <span>Fastest</span>
               </ToggleButton>
               <ToggleButton
                 value="fast"
                 aria-label="fast"
-                sx={{
-                  width: "100%",
-                  textAlign: "left",
-                  justifyContent: "flex-start", // 추가
-                }}
+                sx={toggleTheme("fast")}
+                className="toggle-speed"
+                onClick={() => handleChange(null, "fast")}
               >
                 <BoltIcon />
-                &nbsp;
                 <span>Speed</span>
               </ToggleButton>
+            </div>
+            <div style={{ display: "flex", flexDirection: "row", gap: "1rem" }}>
               <ToggleButton
                 value="balance"
                 aria-label="balance"
-                sx={{ width: "100%", textAlign: "left", justifyContent: "flex-start" }}
+                sx={toggleTheme("balance")}
+                className="toggle-balance"
+                onClick={() => handleChange(null, "balance")}
               >
                 <ClearAllIcon />
-                &nbsp;
                 <span>Balance</span>
               </ToggleButton>
               <ToggleButton
                 value="quality"
                 aria-label="quality"
-                sx={{ width: "100%", textAlign: "left", justifyContent: "flex-start" }}
+                sx={toggleTheme("quality")}
+                className="toggle-quality"
+                onClick={() => handleChange(null, "quality")}
               >
                 <CompressIcon />
-                &nbsp;
-                <span>Quality & Compress</span>
+                <span>Quality</span>
               </ToggleButton>
-            </ToggleButtonGroup>
+            </div>
           </DialogContent>
           <DialogActions sx={{ justifyContent: "center", minWidth: "25rem", padding: 0 }}>
             <Button onClick={handleClose} sx={{ width: "100%", padding: "10px 0" }}>
