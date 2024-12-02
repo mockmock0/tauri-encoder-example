@@ -12,6 +12,7 @@ import LoadPage from "./loadPage";
 import { useFileAdd } from "../hooks/useFileAdd";
 import useFileRemove from "../hooks/fileRemove";
 import VideocamIcon from "@mui/icons-material/Videocam";
+import AudiotrackIcon from "@mui/icons-material/Audiotrack";
 
 const Progress = () => {
   const {
@@ -65,12 +66,13 @@ const Progress = () => {
     setVideoInfo([]);
     setPercent(0);
     setIsEncoding(true);
+    let pathCopy = [...path];
+    setPath(pathCopy.filter((item) => item.status));
     let copy = [];
-    let pathcopy = [...path];
-    for (let item of pathcopy) {
+    for (let item of pathCopy) {
       const info = await invoke("get_video_info", { path: item.path });
-      copy = [...copy, { path: item.path, frame: info.frame, fps: info.fps, isEncoded: false }];
-      await setJSON("videoInfo", copy);
+      copy.push({ path: item.path, frame: info.frame, fps: info.fps, isEncoded: false });
+      await setJSON("videoInfo", [...copy]);
     }
     const info = await getJSON("videoInfo");
     setVideoInfo(info);
@@ -91,6 +93,7 @@ const Progress = () => {
         video_params: video_params,
       });
     }
+    console.log(data);
     await invoke("batch_video_encode", { data: data });
   };
 
@@ -210,7 +213,7 @@ const Progress = () => {
                       : { opacity: 0, scale: 0.5, height: "0", marginBottom: "0" }
                   }
                   transition={{
-                    duration: 0.5,
+                    duration: 0.4,
                     delay: 0,
                     ease: [0, 0.71, 0.2, 1.01],
                   }}
@@ -299,7 +302,16 @@ const Progress = () => {
                       }}
                     ></div>
                     <span style={{ width: "100%", padding: "0 0 0 .5rem", zIndex: 2 }}>
-                      {p.path.split(".").pop().includes("mp4") ? (
+                      {p.isAudio ? (
+                        <AudiotrackIcon
+                          style={{
+                            fontSize: "1.5rem",
+                            verticalAlign: "middle",
+                            marginRight: "0.5rem",
+                            marginBottom: ".2rem",
+                          }}
+                        />
+                      ) : (
                         <VideocamIcon
                           style={{
                             fontSize: "1.5rem",
@@ -308,7 +320,7 @@ const Progress = () => {
                             marginBottom: ".2rem",
                           }}
                         />
-                      ) : null}
+                      )}
                       {p.path.split("\\").pop()}
                     </span>
                   </Button>
@@ -365,5 +377,3 @@ const getJSON = async (data) => {
 const setJSON = async (target, value) => {
   localStorage.setItem(target, JSON.stringify(value));
 };
-
-const VideoExtension = ["mp4", "mov", "avi", "mkv", "wmv", "flv", "webm"];
